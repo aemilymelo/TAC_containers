@@ -1,0 +1,8 @@
+POST http://localhost:8080/estacao/dto
+Content-Type: application/json
+
+{
+    "nome": "Estação Clima Norte",
+    "tipo": "Automática",
+    "id": 1
+}

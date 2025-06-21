@@ -1,0 +1,7 @@
+POST http://localhost:8080/propriedades/dto
+Content-Type: application/json
+
+{
+    "nome": "Sítio Santa Rosa",
+    "localizacao": ""
+}

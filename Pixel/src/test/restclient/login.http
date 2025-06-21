@@ -1,0 +1,25 @@
+@URL=http://localhost:8080/auth
+
+@token=eyJraWQiOiI3SzVUNzJlRm9xNVkyXC95eUVNand0SkdFemgycEs4bGtvQXJSKzh4VGgxST0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1NDk4OTQwOC0yMDExLTcwMTctNTZmMy0xODliZjljMmVmN2YiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9scm12Tm9hZEciLCJjbGllbnRfaWQiOiJqYTZoZWNuMWs4cTlrOTJiYWM5NGZpbDlyIiwib3JpZ2luX2p0aSI6IjZlODhjZDRkLWFjM2UtNGUxYy04MTAxLTcyN2Y1ZTcwZDJhYiIsImV2ZW50X2lkIjoiZmYxNWRjM2ItMjg0ZC00NjEwLTljODItYjQ4MjFkZGNkMmE2IiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc0Nzg4NDM5MiwiZXhwIjoxNzQ3ODg3OTkyLCJpYXQiOjE3NDc4ODQzOTIsImp0aSI6IjFjZWY2NjNmLTA2YWUtNGVhZC1hODg2LWJjY2Q5NTY2MzkwOSIsInVzZXJuYW1lIjoiNTQ5ODk0MDgtMjAxMS03MDE3LTU2ZjMtMTg5YmY5YzJlZjdmIn0.X64d1_8P3PorZ11fm4P41eHXmR6oXmKVa-OL3yIYHy10rd_iNmGakpqExKQ7yHO_RXyQUd12r0PZRFovnLQWfAkL2JlvniWutf_KtoeTXD49cEE4EeCWpX-GX26BP_6pkZxBXWxRa5u__81PTGrF8ZxfvDR7xOKanCqT43Lv2Lzo5bkc_BTBhF8AkCl8BjZMXCwtqfA4wYY-Xn3iZIXXGyGljaeXzyTNq7zO9z5SQs-RRZyKqgw5XhYz3MX4HAahFan8qvLEgKxIcX36MDqM6RCDo07kPUQxD6XBLQ9E1cDmwivzzEI_6fajhQW0XVh2oROmDbtTpFdjoagpAOQHkA
+
+### Validate
+POST {{URL}}/validate HTTP/1.1
+Authorization: Bearer {{token}}
+
+
+### Auth with secret
+POST {{URL}}/login
+Content-Type: application/json
+
+{
+    "username":"kaique@gmail.com",
+    "password": "@Utfpr2024"
+}
+
+### Refresh token
+POST {{URL}}/refresh HTTP/1.1
+Content-Type: application/json
+
+{
+    "refreshToken": "xxx"
+}

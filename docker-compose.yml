@@ -1,0 +1,87 @@
+# A linha 'version' foi removida, pois é obsoleta.
+
+services:
+  # Serviço 1: API Gateway com NGINX
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx_gateway
+    ports:
+      - "80:80"
+    volumes:
+      # Caminho para o arquivo de configuração do Nginx (está correto)
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # CORRIGIDO: Caminho para os arquivos de build do front-end
+      - ./cliente-pixel/.next:/usr/share/nginx/html
+    depends_on:
+      # CORRIGIDO: Agora depende dos NOMES DOS SERVIÇOS abaixo
+      - pixel
+      - api-node-pixel
+      - cliente-pixel
+
+  # Serviço 2: API Spring Boot (Java)
+  # NOME DO SERVIÇO alterado para 'pixel'
+  pixel:
+    container_name: api_spring_boot
+    build:
+      context: ./Pixel
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/mydatabase
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=mypassword
+
+  # Serviço 3: API Express (Node)
+  # NOME DO SERVIÇO alterado para 'api-node-pixel'
+  api-node-pixel:
+    container_name: api_express_node
+    build:
+      context: ./api-node-pixel
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo-db
+    environment:
+      - DB_HOST=mongo-db
+      - DB_PORT=27017
+      - DB_NAME=mydatabase
+
+  # Serviço 4: Front-end React
+  # NOME DO SERVIÇO alterado para 'cliente-pixel'
+  cliente-pixel:
+    container_name: react_app_build
+    build:
+      context: ./cliente-pixel
+      dockerfile: Dockerfile
+    ports: # Adicionamos a porta para podermos acessar diretamente se precisarmos
+      - "3000:3000"
+
+  # Serviço 5: Banco de Dados PostgreSQL
+  postgres-db:
+    image: postgres:14-alpine
+    container_name: postgres_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+
+  # Serviço 6: Banco de Dados MongoDB
+  mongo-db:
+    image: mongo:latest
+    container_name: mongo_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  postgres_data:
+  mongo_data:
