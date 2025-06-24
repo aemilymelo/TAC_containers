@@ -1,64 +1,33 @@
-
 pipeline {
     agent any
 
-    // Variáveis de ambiente usadas no pipeline
     environment {
-        // Nome da imagem Docker que será gerada
-        DOCKER_IMAGE_NAME = "tac/api-node-pixel"
-        // Nome do container que será criado
-        CONTAINER_NAME = "api_express_node_jenkins"
-        // URL do seu repositório Git
-        GIT_REPO_URL = "https://github.com/aemilymelo/pixel-containers.git"
+        SERVICE_NAME = 'api-node-pixel'
     }
 
     stages {
-        stage('1. Limpeza do Ambiente Antigo') {
+        stage('1. Checkout do Código') {
+            steps {
+                // Faz o clone usando SSH e a credencial cadastrada
+                git branch: 'main',
+                    url: 'git@github.com:aemilymelo/TAC_containers.git',
+                    credentialsId: '3b5b4ad2-789b-464a-8fa9-ca3caf01488e'
+            }
+        }
+        stage('2. Build, Re-criação e Deploy do Serviço') {
             steps {
                 script {
-                    // O '|| true' no final ignora o erro caso o container ou a imagem não existam
-                    sh "docker stop ${CONTAINER_NAME} || true"
-                    sh "docker rm ${CONTAINER_NAME} || true"
-                    sh "docker rmi ${DOCKER_IMAGE_NAME} || true"
+                    echo "Parando, reconstruindo e iniciando o serviço ${SERVICE_NAME} via docker-compose..."
+                    sh "docker-compose -f ../docker-compose.yml up -d --build ${SERVICE_NAME}"
                 }
-            }
-        }
-
-        stage('2. Download do Código-Fonte') {
-            steps {
-                git branch: 'main', url: GIT_REPO_URL
-            }
-        }
-
-        stage('3. Build da Imagem Docker') {
-            steps {
-                script {
-                    // O 'dir' muda o diretório para a pasta correta antes de construir
-                    dir('api-node-pixel') {
-                        sh "docker build -t ${DOCKER_IMAGE_NAME} ."
-                    }
-                }
-            }
-        }
-
-        stage('4. Inicialização do Container') {
-            steps {
-                // Aqui criamos o novo container
-                // ATENÇÃO: Se a sua API precisa se conectar a um banco,
-                // ela deve fazer parte da mesma rede do docker-compose principal.
-                // Esta é uma implantação simples.
-                sh "docker run -d --name ${CONTAINER_NAME} -p 3002:3001 ${DOCKER_IMAGE_NAME}"
             }
         }
     }
-
-    // Configurações a serem executadas no final do pipeline
     post {
         always {
-            // Envio de e-mail ao final de cada execução
-            mail to: 'seu-email@gmail.com',
+            mail to: 'emilycaroline689@gmail.com',
                  subject: "Jenkins Job: ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
-                 body: "O Job ${env.JOB_NAME} foi concluído com o status: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
+                 body: "O Job ${env.JOB_NAME} (${SERVICE_NAME}) foi concluído com o status: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
         }
     }
 }

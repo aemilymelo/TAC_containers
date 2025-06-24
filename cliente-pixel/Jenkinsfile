@@ -1,53 +1,35 @@
+// ./cliente-pixel/Jenkinsfile - CORRIGIDO
+
 pipeline {
     agent any
 
     environment {
-        // Nome da imagem Docker que será gerada (ex: tac/frontend)
-        DOCKER_IMAGE_NAME = "tac/frontend"
-        // Nome do container que será criado (deve ser único)
-        CONTAINER_NAME = "frontend-jenkins-deploy"
-        // URL do seu repositório Git
-        GIT_REPO_URL = "https://github.com/aemilymelo/pixel-containers.git"
+        SERVICE_NAME = 'cliente-pixel'
     }
 
     stages {
-        stage('1. Limpeza do Ambiente Antigo') {
+        stage('1. Checkout do Código') {
             steps {
-                script {
-                    echo "Limpando container e imagem anteriores..."
-                    sh "docker stop ${CONTAINER_NAME} || true"
-                    sh "docker rm ${CONTAINER_NAME} || true"
-                    sh "docker rmi ${DOCKER_IMAGE_NAME} || true"
-                }
+                // Faz o clone usando SSH e a credencial cadastrada
+                git branch: 'main',
+                    url: 'git@github.com:aemilymelo/TAC_containers.git',
+                    credentialsId: '3b5b4ad2-789b-464a-8fa9-ca3caf01488e'
             }
         }
-
-        stage('2. Build da Imagem Docker') {
+        stage('2. Build, Re-criação e Deploy do Serviço') {
             steps {
                 script {
-                    echo "Construindo a imagem Docker a partir de cliente-pixel/Dockerfile..."
-                    // 'dir' muda o diretório de trabalho para a pasta correta
-                    dir('cliente-pixel') {
-                        sh "docker build -t ${DOCKER_IMAGE_NAME} ."
-                    }
+                    echo "Parando, reconstruindo e iniciando o serviço ${SERVICE_NAME} via docker-compose..."
+                    sh "docker-compose -f ../docker-compose.yml up -d --build ${SERVICE_NAME}"
                 }
-            }
-        }
-
-        stage('3. Inicialização do Container') {
-            steps {
-                echo "Iniciando o novo container..."
-                // Mapeamos para a porta 3001 para não conflitar
-                sh "docker run -d --name ${CONTAINER_NAME} -p 3001:3000 ${DOCKER_IMAGE_NAME}"
             }
         }
     }
-
     post {
         always {
-            mail to: 'seu-email@exemplo.com',
+            mail to: 'emilycaroline689@gmail.com',
                  subject: "Jenkins Job: ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
-                 body: "O Job ${env.JOB_NAME} foi concluído com o status: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
+                 body: "O Job ${env.JOB_NAME} (${SERVICE_NAME}) foi concluído com o status: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
         }
     }
 }
