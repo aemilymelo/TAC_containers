@@ -3,14 +3,15 @@
 pipeline {
     agent any
     environment {
-        SERVICE_NAME = 'cliente-pixel'
-    }
+    SERVICE_NAME = 'nginx'
+}
+
     stages {
         stage('Deploy do Serviço') {
             steps {
                 script {
                     echo "Parando e reconstruindo o serviço ${SERVICE_NAME}..."
-                    sh "docker-compose -f ${env.WORKSPACE}/docker-compose.yml up -d --build ${SERVICE_NAME}"
+                    sh 'docker-compose -f /var/jenkins_home/workspace/job-cliente-pixel/docker-compose.yml up -d --build'
                 }
             }
         }
