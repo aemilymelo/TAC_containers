@@ -1,4 +1,4 @@
-// ./api-node-pixel/Jenkinsfile - CORREÇÃO DE CAMINHO
+// ./api-node-pixel/Jenkinsfile - Versão Final com Caminho Absoluto
 
 pipeline {
     agent any
@@ -6,12 +6,11 @@ pipeline {
         SERVICE_NAME = 'api-node-pixel'
     }
     stages {
-        stage('Checkout e Deploy') {
+        stage('Deploy do Serviço') {
             steps {
                 script {
-                    echo "Parando, reconstruindo e iniciando o serviço ${SERVICE_NAME}..."
-                    // A correção é remover o caminho e deixar o docker-compose procurar o arquivo na raiz.
-                    sh "docker-compose up -d --build ${SERVICE_NAME}"
+                    echo "Parando e reconstruindo o serviço ${SERVICE_NAME}..."
+                    sh "docker-compose -f ${env.WORKSPACE}/docker-compose.yml up -d --build ${SERVICE_NAME}"
                 }
             }
         }
