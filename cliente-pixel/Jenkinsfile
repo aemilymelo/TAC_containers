@@ -1,26 +1,17 @@
-// ./cliente-pixel/Jenkinsfile - CORRIGIDO
+// ./cliente-pixel/Jenkinsfile - CORREÇÃO DE CAMINHO
 
 pipeline {
     agent any
-
     environment {
         SERVICE_NAME = 'cliente-pixel'
     }
-
     stages {
-        stage('1. Checkout do Código') {
-            steps {
-                // Faz o clone usando SSH e a credencial cadastrada
-                git branch: 'main',
-                    url: 'git@github.com:aemilymelo/TAC_containers.git',
-                    credentialsId: '3b5b4ad2-789b-464a-8fa9-ca3caf01488e'
-            }
-        }
-        stage('2. Build, Re-criação e Deploy do Serviço') {
+        stage('Checkout e Deploy') {
             steps {
                 script {
-                    echo "Parando, reconstruindo e iniciando o serviço ${SERVICE_NAME} via docker-compose..."
-                    sh "docker-compose -f ../docker-compose.yml up -d --build ${SERVICE_NAME}"
+                    echo "Parando, reconstruindo e iniciando o serviço ${SERVICE_NAME}..."
+                    // A correção é remover o caminho e deixar o docker-compose procurar o arquivo na raiz.
+                    sh "docker-compose up -d --build ${SERVICE_NAME}"
                 }
             }
         }
@@ -29,7 +20,7 @@ pipeline {
         always {
             mail to: 'emilycaroline689@gmail.com',
                  subject: "Jenkins Job: ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
-                 body: "O Job ${env.JOB_NAME} (${SERVICE_NAME}) foi concluído com o status: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
+                 body: "O Job ${env.JOB_NAME} (${SERVICE_NAME}) foi concluído.\n\nStatus: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
         }
     }
 }

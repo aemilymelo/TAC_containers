@@ -1,7 +1,10 @@
 version: '3.8'
 services:
   jenkins:
-    image: jenkins/jenkins:lts-jdk17
+    # A linha 'image: jenkins/jenkins:lts-jdk17' foi substituída por esta seção 'build':
+    build:
+      context: .
+      dockerfile: jenkins.Dockerfile
     container_name: jenkins_controller
     privileged: true
     user: root

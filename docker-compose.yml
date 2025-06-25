@@ -1,25 +1,27 @@
-# A linha 'version' foi removida, pois é obsoleta.
-
+# A versão do arquivo não é mais necessária nas versões mais recentes do Docker Compose.
 services:
   # Serviço 1: API Gateway com NGINX
+  # Este serviço atua como ponto de entrada, roteando o tráfego
+  # para os serviços de back-end e servindo o front-end estático.
   nginx:
     image: nginx:stable-alpine
     container_name: nginx_gateway
     ports:
       - "80:80"
     volumes:
-      # Caminho para o arquivo de configuração do Nginx (está correto)
+      # Monta o arquivo de configuração do Nginx.
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # CORRIGIDO: Caminho para os arquivos de build do front-end
+      # Monta os arquivos estáticos do front-end (build do Next.js/React).
+      # IMPORTANTE: Você precisa gerar o build do seu front-end (ex: 'npm run build')
+      # para que a pasta './cliente-pixel/.next' exista antes de iniciar o contêiner.
       - ./cliente-pixel/.next:/usr/share/nginx/html
     depends_on:
-      # CORRIGIDO: Agora depende dos NOMES DOS SERVIÇOS abaixo
+      # Garante que o Nginx só inicie após os serviços dos quais ele depende.
       - pixel
       - api-node-pixel
-      - cliente-pixel
+    restart: unless-stopped
 
   # Serviço 2: API Spring Boot (Java)
-  # NOME DO SERVIÇO alterado para 'pixel'
   pixel:
     container_name: api_spring_boot
     build:
@@ -33,9 +35,9 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/mydatabase
       - SPRING_DATASOURCE_USERNAME=myuser
       - SPRING_DATASOURCE_PASSWORD=mypassword
+    restart: unless-stopped
 
-  # Serviço 3: API Express (Node)
-  # NOME DO SERVIÇO alterado para 'api-node-pixel'
+  # Serviço 3: API Express (Node.js)
   api-node-pixel:
     container_name: api_express_node
     build:
@@ -49,18 +51,9 @@ services:
       - DB_HOST=mongo-db
       - DB_PORT=27017
       - DB_NAME=mydatabase
+    restart: unless-stopped
 
-  # Serviço 4: Front-end React
-  # NOME DO SERVIÇO alterado para 'cliente-pixel'
-  cliente-pixel:
-    container_name: react_app_build
-    build:
-      context: ./cliente-pixel
-      dockerfile: Dockerfile
-    ports: # Adicionamos a porta para podermos acessar diretamente se precisarmos
-      - "3000:3000"
-
-  # Serviço 5: Banco de Dados PostgreSQL
+  # Serviço 4: Banco de Dados PostgreSQL
   postgres-db:
     image: postgres:14-alpine
     container_name: postgres_db
@@ -72,8 +65,9 @@ services:
       - POSTGRES_DB=mydatabase
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
+    restart: unless-stopped
 
-  # Serviço 6: Banco de Dados MongoDB
+  # Serviço 5: Banco de Dados MongoDB
   mongo-db:
     image: mongo:latest
     container_name: mongo_db
@@ -81,7 +75,31 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    restart: unless-stopped
 
+  # Serviço 6: Jenkins
+  # Este serviço está corretamente configurado para ter acesso ao Docker da máquina host,
+  # permitindo a execução de pipelines de CI/CD (Docker-in-Docker).
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins_controller
+    privileged: true
+    user: root
+    ports:
+      - "8090:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      # O caminho para o docker-compose pode variar dependendo do seu sistema.
+      # Verifique o caminho correto com 'which docker-compose' se encontrar erros.
+      - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose
+    restart: unless-stopped
+
+# Definição dos volumes para persistência de dados.
+# Isso garante que os dados não sejam perdidos ao recriar os contêineres.
 volumes:
   postgres_data:
   mongo_data:
+  jenkins_data:
