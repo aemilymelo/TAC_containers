@@ -77,9 +77,6 @@ services:
       - mongo_data:/data/db
     restart: unless-stopped
 
-  # Serviço 6: Jenkins
-  # Este serviço está corretamente configurado para ter acesso ao Docker da máquina host,
-  # permitindo a execução de pipelines de CI/CD (Docker-in-Docker).
   jenkins:
     image: jenkins/jenkins:lts-jdk17
     container_name: jenkins_controller
@@ -92,13 +89,9 @@ services:
       - jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
-      # O caminho para o docker-compose pode variar dependendo do seu sistema.
-      # Verifique o caminho correto com 'which docker-compose' se encontrar erros.
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose
     restart: unless-stopped
 
-# Definição dos volumes para persistência de dados.
-# Isso garante que os dados não sejam perdidos ao recriar os contêineres.
 volumes:
   postgres_data:
   mongo_data:

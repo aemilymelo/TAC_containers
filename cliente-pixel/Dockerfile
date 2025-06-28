@@ -1,15 +1,22 @@
-# Estágio de Build: usa o Node para compilar os arquivos do React/Next.js
-FROM node:18-alpine AS build
+# Estágio 1: Instalar dependências e fazer o build
+FROM node:18-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install
+
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# Estágio de Produção: usa um servidor web leve (NGINX)
-FROM nginx:stable-alpine
+# Estágio 2: Imagem final para produção
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-# --- A CORREÇÃO FINAL ESTÁ AQUI ---
-# Copiamos o resultado do build do Next.js (a pasta .next) e a pasta public
-COPY --from=build /app/public /usr/share/nginx/html/public
-COPY --from=build /app/.next /usr/share/nginx/html/.next
+EXPOSE 3000
+
+CMD ["node", "server.js"]
