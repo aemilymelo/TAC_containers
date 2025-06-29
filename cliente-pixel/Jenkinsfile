@@ -1,5 +1,5 @@
 pipeline {
-    agent any // Executa a maior parte do pipeline no agente principal
+    agent any // Define o agente padrão no nível superior
 
     environment {
         GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
@@ -15,28 +15,27 @@ pipeline {
             }
         }
 
-       stage('Build Frontend') {
-    steps {
-        script {
-            echo "--- Preparando para buildar o frontend dentro do Docker ---"
-
-            def dockerImage = 'node:18'
-
-            // CAPTURA O CAMINHO ABSOLUTO CORRETO
-            def workspaceDir = pwd()
-
-            // USA O CAMINHO RESOLVIDO NO VOLUME
-            sh """
-                docker run --rm \
-                    -v "${workspaceDir}/${env.PROJECT_DIR}:/app" \
-                    -w /app \
-                    ${dockerImage} \
-                    sh -c 'npm install --legacy-peer-deps && npm run build'
-            """
+        stage('Build Frontend') {
+            // Este stage não usa um 'agent' próprio, pois vamos chamar o Docker manualmente
+            steps {
+                script {
+                    echo "--- Preparando para buildar o frontend dentro do Docker ---"
+                    
+                    def dockerImage = 'node:18'
+                    
+                    // Usamos a variável de ambiente 'WORKSPACE' que o Jenkins fornece.
+                    // Ela contém o caminho absoluto para a área de trabalho (ex: /var/jenkins_home/workspace/cliente-pixel)
+                    // e garante que não teremos o problema do diretório com '@2'.
+                    sh """
+                        docker run --rm \
+                            -v "${env.WORKSPACE}/${env.PROJECT_DIR}":/app \
+                            -w /app \
+                            ${dockerImage} \
+                            sh -c 'npm install --legacy-peer-deps && npm run build'
+                    """
+                }
+            }
         }
-    }
-}
-
 
         stage('Deploy Frontend') {
             steps {
@@ -50,7 +49,7 @@ pipeline {
         always {
             script {
                 def jobStatus = currentBuild.currentResult
-                def subject = "${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
+                def subject = "[Jenkins] ${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
                 def body = """
                         <h1>Status do Build: ${jobStatus}</h1>
                         <p>
