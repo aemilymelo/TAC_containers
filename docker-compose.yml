@@ -2,24 +2,28 @@
 services:
   # Serviço 1: API Gateway com NGINX
   # Este serviço atua como ponto de entrada, roteando o tráfego
-  # para os serviços de back-end e servindo o front-end estático.
-  nginx:
-    image: nginx:stable-alpine
-    container_name: nginx_gateway
+  frontend:
+    container_name: frontend
+    build:
+      context: ./cliente-pixel
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
-    volumes:
-      # Monta o arquivo de configuração do Nginx.
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # Monta os arquivos estáticos do front-end (build do Next.js/React).
-      # IMPORTANTE: Você precisa gerar o build do seu front-end (ex: 'npm run build')
-      # para que a pasta './cliente-pixel/.next' exista antes de iniciar o contêiner.
-      - ./cliente-pixel/.next:/usr/share/nginx/html
-    depends_on:
-      # Garante que o Nginx só inicie após os serviços dos quais ele depende.
-      - pixel
-      - api-node-pixel
+      - "3000:3000"
     restart: unless-stopped
+  
+  nginx:
+  image: nginx:stable-alpine
+  container_name: nginx_gateway
+  ports:
+    - "80:80"
+  volumes:
+    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  depends_on:
+    - frontend
+    - pixel
+    - api-node-pixel
+  restart: unless-stopped
+
 
   # Serviço 2: API Spring Boot (Java)
   pixel:

@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
-        PROJECT_DIR         = '.'               // Repositório clonado na raiz
-        DOCKER_SERVICE_NAME = 'nginx'           // Nome do serviço Docker para reiniciar
+        PROJECT_DIR         = 'cliente-pixel'
+        DOCKER_SERVICE_NAME = 'nginx'
     }
 
     stages {
@@ -17,26 +17,24 @@ pipeline {
 
         stage('Build Frontend') {
             agent {
-                docker { image 'node:18' }
+                docker {
+                    image 'node:18'
+                    // Monta o diretório do projeto no contêiner e define como diretório de trabalho
+                    args '-v ${pwd()}/${env.PROJECT_DIR}:/app -w /app'
                 }
-                steps {
-                    echo '--- Instalando dependências e fazendo o build do Next.js ---'
-                    sh 'npm install --legacy-peer-deps'
-                    sh 'npm run build'
-                    }
-        }
+            }
             steps {
-                dir('cliente-pixel') {  // Agora acessa corretamente a subpasta
-                    echo "--- Instalando dependências e fazendo o build do Next.js ---"
-                    sh 'npm install --legacy-peer-deps'
-                    sh 'npm run build'
-                }
+                // Não é mais necessário o passo 'dir', pois o -w já define o diretório
+                echo "--- Instalando dependências e fazendo o build do Next.js dentro de /app ---"
+                sh 'npm install --legacy-peer-deps'
+                sh 'npm run build'
             }
         }
 
         stage('Deploy Frontend') {
             steps {
                 echo "--- Reiniciando o serviço NGINX para carregar os novos arquivos ---"
+                // Garante que está no diretório correto para executar o docker-compose
                 sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
             }
         }
@@ -48,12 +46,12 @@ pipeline {
                 def jobStatus = currentBuild.currentResult
                 def subject = "${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
                 def body = """
-                    <h1>Status do Build: ${jobStatus}</h1>
-                    <p>
-                        Job: ${env.JOB_NAME}<br>
-                        Build: #${env.BUILD_NUMBER}<br>
-                        Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>
-                    </p>
+                        <h1>Status do Build: ${jobStatus}</h1>
+                        <p>
+                            Job: ${env.JOB_NAME}<br>
+                            Build: #${env.BUILD_NUMBER}<br>
+                            Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>
+                        </p>
                 """
 
                 echo "--- Enviando notificação por e-mail ---"

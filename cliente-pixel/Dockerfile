@@ -1,21 +1,17 @@
-# Estágio 1: Instalar dependências e fazer o build
-FROM node:18-alpine AS deps
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --legacy-peer-deps
-
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN npm run build
-
-# Estágio 2: Imagem final para produção
 FROM node:18-alpine
 WORKDIR /app
-COPY --from=builder /app/public ./public
+
+# Copia o standalone gerado
 COPY --from=builder /app/.next/standalone ./
+
+# Copia a pasta `.next/static` — necessário para assets públicos
 COPY --from=builder /app/.next/static ./.next/static
+
+# Copia a pasta `public` — para servir imagens etc.
+COPY --from=builder /app/public ./public
+
+# (Importante) Copia o `package.json` — é necessário para `node server.js` funcionar.
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 
