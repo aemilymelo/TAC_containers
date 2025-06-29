@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
-        // Diretório do projeto dentro do repositório
+        // Diretório do projeto dentro do repositório clonado
         PROJECT_DIR         = 'cliente-pixel'
         // O serviço que queremos reiniciar no final
         DOCKER_SERVICE_NAME = 'nginx'
@@ -18,12 +18,13 @@ pipeline {
             }
         }
 
+        // Estágio de build simplificado
         stage('Build Frontend') {
             steps {
                 // Entra no diretório correto do projeto que foi clonado
                 dir(env.PROJECT_DIR) {
                     echo "--- Instalando dependências e fazendo o build do Next.js ---"
-                    // Executa os comandos de build do Node.js
+                    // Executa os comandos de build do Node.js diretamente no agente
                     sh 'npm install --legacy-peer-deps'
                     sh 'npm run build'
                 }
@@ -34,7 +35,7 @@ pipeline {
             steps {
                 echo "--- Reiniciando o serviço NGINX para carregar os novos arquivos ---"
                 // Reinicia o contêiner do Nginx para que ele sirva os novos arquivos
-                // que foram criados na pasta .next (montada como um volume)
+                // que foram criados na pasta .next (que está montada como um volume no docker-compose.yml)
                 sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
             }
         }
