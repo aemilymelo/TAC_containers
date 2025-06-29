@@ -1,9 +1,12 @@
 pipeline {
-    agent any // Define o agente padrão no nível superior
+    // Roda no agente padrão do Jenkins
+    agent any
 
     environment {
         GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
+        // Diretório do projeto dentro do repositório
         PROJECT_DIR         = 'cliente-pixel'
+        // O serviço que queremos reiniciar no final
         DOCKER_SERVICE_NAME = 'nginx'
     }
 
@@ -16,23 +19,13 @@ pipeline {
         }
 
         stage('Build Frontend') {
-            // Este stage não usa um 'agent' próprio, pois vamos chamar o Docker manualmente
             steps {
-                script {
-                    echo "--- Preparando para buildar o frontend dentro do Docker ---"
-                    
-                    def dockerImage = 'node:18'
-                    
-                    // Usamos a variável de ambiente 'WORKSPACE' que o Jenkins fornece.
-                    // Ela contém o caminho absoluto para a área de trabalho (ex: /var/jenkins_home/workspace/cliente-pixel)
-                    // e garante que não teremos o problema do diretório com '@2'.
-                    sh """
-                        docker run --rm \
-                            -v "${env.WORKSPACE}/${env.PROJECT_DIR}":/app \
-                            -w /app \
-                            ${dockerImage} \
-                            sh -c 'npm install --legacy-peer-deps && npm run build'
-                    """
+                // Entra no diretório correto do projeto que foi clonado
+                dir(env.PROJECT_DIR) {
+                    echo "--- Instalando dependências e fazendo o build do Next.js ---"
+                    // Executa os comandos de build do Node.js
+                    sh 'npm install --legacy-peer-deps'
+                    sh 'npm run build'
                 }
             }
         }
@@ -40,24 +33,20 @@ pipeline {
         stage('Deploy Frontend') {
             steps {
                 echo "--- Reiniciando o serviço NGINX para carregar os novos arquivos ---"
+                // Reinicia o contêiner do Nginx para que ele sirva os novos arquivos
+                // que foram criados na pasta .next (montada como um volume)
                 sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
             }
         }
     }
 
+    // O bloco post para enviar e-mail continua o mesmo
     post {
         always {
             script {
                 def jobStatus = currentBuild.currentResult
-                def subject = "[Jenkins] ${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
-                def body = """
-                        <h1>Status do Build: ${jobStatus}</h1>
-                        <p>
-                            Job: ${env.JOB_NAME}<br>
-                            Build: #${env.BUILD_NUMBER}<br>
-                            Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>
-                        </p>
-                """
+                def subject = "${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
+                def body = "<h1>Status do Build: ${jobStatus}</h1><p>Job: ${env.JOB_NAME}<br>Build: #${env.BUILD_NUMBER}<br>Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a></p>"
 
                 echo "--- Enviando notificação por e-mail ---"
                 emailext(
