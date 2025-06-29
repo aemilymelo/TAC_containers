@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent any // Executa a maior parte do pipeline no agente principal
 
     environment {
         GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
@@ -16,17 +16,25 @@ pipeline {
         }
 
         stage('Build Frontend') {
-            agent {
-                docker {
-                    image 'node:18'
-                    // Correção: Use aspas duplas para expandir as variáveis
-                    args "-v ${pwd()}/${env.PROJECT_DIR}:/app -w /app"
-                }
-            }
+            // Este stage não define um 'agent', pois vamos chamar o Docker manualmente
             steps {
-                echo "--- Instalando dependências e fazendo o build do Next.js dentro de /app ---"
-                sh 'npm install --legacy-peer-deps'
-                sh 'npm run build'
+                script {
+                    // Usamos um bloco 'script' para ter mais controle
+                    echo "--- Preparando para buildar o frontend dentro do Docker ---"
+                    
+                    // Definimos a imagem do Docker que queremos usar
+                    def dockerImage = 'node:18'
+                    
+                    // Montamos e executamos o comando 'docker run' manualmente
+                    // A variável env.WORKSPACE garante que estamos usando o diretório correto
+                    sh """
+                        docker run --rm \
+                            -v "${env.WORKSPACE}/${env.PROJECT_DIR}":/app \
+                            -w /app \
+                            ${dockerImage} \
+                            sh -c 'npm install --legacy-peer-deps && npm run build'
+                    """
+                }
             }
         }
 
