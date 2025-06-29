@@ -20,16 +20,17 @@ pipeline {
 
         // Estágio de build simplificado
         stage('Build Frontend') {
-            steps {
-                // Entra no diretório correto do projeto que foi clonado
-                dir(env.PROJECT_DIR) {
-                    echo "--- Instalando dependências e fazendo o build do Next.js ---"
-                    // Executa os comandos de build do Node.js diretamente no agente
-                    sh 'npm install --legacy-peer-deps'
-                    sh 'npm run build'
-                }
-            }
+    agent {
+        docker {
+            image 'node:18'
+            args '-v $WORKSPACE:/app -w /app' // Usa a variável WORKSPACE padrão do Jenkins
         }
+    }
+    steps {
+        sh 'npm install'
+        sh 'npm run build'
+    }
+}
 
         stage('Deploy Frontend') {
             steps {
