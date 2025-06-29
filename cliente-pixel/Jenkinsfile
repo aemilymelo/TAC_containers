@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
-        PROJECT_DIR         = 'cliente-pixel'
+        GIT_URL = 'https://github.com/aemilymelo/TAC_containers.git'
         DOCKER_SERVICE_NAME = 'nginx'
+        // Remova PROJECT_DIR pois não estamos mais usando
     }
 
     stages {
@@ -19,28 +19,24 @@ pipeline {
             agent {
                 docker {
                     image 'node:18'
-                    // Corrigido: usando WORKSPACE em vez de pwd() e montando o volume corretamente
                     args '-v $WORKSPACE:/app -w /app'
                 }
             }
             steps {
-                echo "--- Instalando dependências e fazendo o build do Next.js dentro de /app ---"
-                sh 'npm install --legacy-peer-deps'
-                sh 'npm run build'
-            }
-        }
-
-        stage('Debug Paths') {
-            steps {
-                sh 'echo "WORKSPACE = $WORKSPACE"'
-                sh 'pwd'
+                echo "--- Instalando dependências e fazendo o build do Next.js ---"
+                // Verifique primeiro onde está o package.json
                 sh 'ls -la'
+                // Se estiver em um subdiretório, navegue até ele
+                dir('cliente-pixel') {  // Substitua pelo seu subdiretório se necessário
+                    sh 'npm install --legacy-peer-deps'
+                    sh 'npm run build'
+                }
             }
         }
 
         stage('Deploy Frontend') {
             steps {
-                echo "--- Reiniciando o serviço NGINX para carregar os novos arquivos ---"
+                echo "--- Reiniciando o serviço NGINX ---"
                 sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
             }
         }
@@ -49,23 +45,11 @@ pipeline {
     post {
         always {
             script {
-                def jobStatus = currentBuild.currentResult
-                def subject = "${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
-                def body = """
-                        <h1>Status do Build: ${jobStatus}</h1>
-                        <p>
-                            Job: ${env.JOB_NAME}<br>
-                            Build: #${env.BUILD_NUMBER}<br>
-                            Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>
-                        </p>
-                """
-
-                echo "--- Enviando notificação por e-mail ---"
+                // Configuração de email reduzida para testes
                 emailext(
                     to: 'emilycaroline689@gmail.com',
-                    subject: subject,
-                    body: body,
-                    mimeType: 'text/html'
+                    subject: "Build ${currentBuild.currentResult}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: "Detalhes: ${env.BUILD_URL}"
                 )
             }
         }
