@@ -17,11 +17,14 @@ pipeline {
 
         stage('Build Frontend') {
             agent {
-                docker {
-                    image 'node:18'                                      // Usa imagem com Node.js e npm
-                    args '-v /var/run/docker.sock:/var/run/docker.sock' // Caso precise rodar docker no container
+                docker { image 'node:18' }
                 }
-            }
+                steps {
+                    echo '--- Instalando dependências e fazendo o build do Next.js ---'
+                    sh 'npm install --legacy-peer-deps'
+                    sh 'npm run build'
+                    }
+        }
             steps {
                 dir('cliente-pixel') {  // Agora acessa corretamente a subpasta
                     echo "--- Instalando dependências e fazendo o build do Next.js ---"
