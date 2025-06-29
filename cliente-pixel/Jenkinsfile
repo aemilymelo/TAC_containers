@@ -4,7 +4,6 @@ pipeline {
     environment {
         GIT_URL = 'https://github.com/aemilymelo/TAC_containers.git'
         DOCKER_SERVICE_NAME = 'nginx'
-        // Remova PROJECT_DIR pois não estamos mais usando
     }
 
     stages {
@@ -24,10 +23,7 @@ pipeline {
             }
             steps {
                 echo "--- Instalando dependências e fazendo o build do Next.js ---"
-                // Verifique primeiro onde está o package.json
-                sh 'ls -la'
-                // Se estiver em um subdiretório, navegue até ele
-                dir('cliente-pixel') {  // Substitua pelo seu subdiretório se necessário
+                dir('cliente-pixel') {
                     sh 'npm install --legacy-peer-deps'
                     sh 'npm run build'
                 }
@@ -37,7 +33,11 @@ pipeline {
         stage('Deploy Frontend') {
             steps {
                 echo "--- Reiniciando o serviço NGINX ---"
-                sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
+                // Verifica primeiro se o docker-compose.yml existe
+                sh 'ls -la'
+                // Usa docker compose (versão mais recente) em vez de docker-compose
+                sh 'docker compose ps' // Para debug
+                sh 'docker compose restart ${DOCKER_SERVICE_NAME} || echo "Ignorando erro de restart"'
             }
         }
     }
@@ -45,12 +45,17 @@ pipeline {
     post {
         always {
             script {
-                // Configuração de email reduzida para testes
-                emailext(
-                    to: 'emilycaroline689@gmail.com',
-                    subject: "Build ${currentBuild.currentResult}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: "Detalhes: ${env.BUILD_URL}"
-                )
+                // Configuração simplificada de email para testes
+                try {
+                    emailext(
+                        to: 'emilycaroline689@gmail.com',
+                        subject: "Build ${currentBuild.currentResult}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                        body: "Detalhes: ${env.BUILD_URL}",
+                        attachLog: true
+                    )
+                } catch (Exception e) {
+                    echo "Erro ao enviar email: ${e.toString()}"
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
-# A versão do arquivo não é mais necessária nas versões mais recentes do Docker Compose.
+version: '3.8'  # Mantive a versão para compatibilidade, mas pode ser removida se usar docker compose v2+
+
 services:
-  # Serviço 1: API Gateway com NGINX
-  # Este serviço atua como ponto de entrada, roteando o tráfego
+  # Serviço 1: Frontend Next.js
   frontend:
     container_name: frontend
     build:
@@ -11,21 +11,24 @@ services:
       - "3000:3000"
     restart: unless-stopped
   
+  # Serviço 2: NGINX Gateway
   nginx:
-  image: nginx:stable-alpine
-  container_name: nginx_gateway
-  ports:
-    - "80:80"
-  volumes:
-    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  depends_on:
-    - frontend
-    - pixel
-    - api-node-pixel
-  restart: unless-stopped
+    image: nginx:stable-alpine
+    container_name: nginx_gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      pixel:
+        condition: service_healthy
+      api-node-pixel:
+        condition: service_healthy
+    restart: unless-stopped
 
-
-  # Serviço 2: API Spring Boot (Java)
+  # Serviço 3: API Spring Boot (Java)
   pixel:
     container_name: api_spring_boot
     build:
@@ -34,14 +37,20 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/mydatabase
-      - SPRING_DATASOURCE_USERNAME=myuser
-      - SPRING_DATASOURCE_PASSWORD=mypassword
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: mypassword
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
 
-  # Serviço 3: API Express (Node.js)
+  # Serviço 4: API Express (Node.js)
   api-node-pixel:
     container_name: api_express_node
     build:
@@ -50,14 +59,20 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - mongo-db
+      mongo-db:
+        condition: service_healthy
     environment:
-      - DB_HOST=mongo-db
-      - DB_PORT=27017
-      - DB_NAME=mydatabase
+      DB_HOST: mongo-db
+      DB_PORT: "27017"
+      DB_NAME: mydatabase
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
 
-  # Serviço 4: Banco de Dados PostgreSQL
+  # Serviço 5: Banco de Dados PostgreSQL
   postgres-db:
     image: postgres:14-alpine
     container_name: postgres_db
@@ -66,12 +81,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=mydatabase
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
-  # Serviço 5: Banco de Dados MongoDB
+  # Serviço 6: Banco de Dados MongoDB
   mongo-db:
     image: mongo:latest
     container_name: mongo_db
@@ -79,17 +99,21 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
 
+  # Serviço 7: Jenkins
   jenkins:
     container_name: jenkins_controller
-    # A linha 'image' foi substituída por esta seção 'build'.
-    # Ela diz ao Docker para construir a imagem a partir do nosso Dockerfile customizado.
     build:
       context: .
       dockerfile: jenkins.Dockerfile
     privileged: true
-    user: root # Inicia como root para ter acesso ao socket do docker
+    user: root
     ports:
       - "8090:8080"
       - "50000:50000"
