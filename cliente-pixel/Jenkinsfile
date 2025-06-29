@@ -15,28 +15,28 @@ pipeline {
             }
         }
 
-        stage('Build Frontend') {
-            // Este stage não define um 'agent', pois vamos chamar o Docker manualmente
-            steps {
-                script {
-                    // Usamos um bloco 'script' para ter mais controle
-                    echo "--- Preparando para buildar o frontend dentro do Docker ---"
-                    
-                    // Definimos a imagem do Docker que queremos usar
-                    def dockerImage = 'node:18'
-                    
-                    // Montamos e executamos o comando 'docker run' manualmente
-                    // A variável env.WORKSPACE garante que estamos usando o diretório correto
-                    sh """
-                        docker run --rm \
-                            -v "${env.WORKSPACE}/${env.PROJECT_DIR}":/app \
-                            -w /app \
-                            ${dockerImage} \
-                            sh -c 'npm install --legacy-peer-deps && npm run build'
-                    """
-                }
-            }
+       stage('Build Frontend') {
+    steps {
+        script {
+            echo "--- Preparando para buildar o frontend dentro do Docker ---"
+
+            def dockerImage = 'node:18'
+
+            // CAPTURA O CAMINHO ABSOLUTO CORRETO
+            def workspaceDir = pwd()
+
+            // USA O CAMINHO RESOLVIDO NO VOLUME
+            sh """
+                docker run --rm \
+                    -v "${workspaceDir}/${env.PROJECT_DIR}:/app" \
+                    -w /app \
+                    ${dockerImage} \
+                    sh -c 'npm install --legacy-peer-deps && npm run build'
+            """
         }
+    }
+}
+
 
         stage('Deploy Frontend') {
             steps {
