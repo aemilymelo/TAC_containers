@@ -1,12 +1,9 @@
 pipeline {
-    // Roda no agente padrão do Jenkins
     agent any
 
     environment {
         GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
-        // Diretório do projeto dentro do repositório clonado
         PROJECT_DIR         = 'cliente-pixel'
-        // O serviço que queremos reiniciar no final
         DOCKER_SERVICE_NAME = 'nginx'
     }
 
@@ -18,37 +15,50 @@ pipeline {
             }
         }
 
-        // Estágio de build simplificado
         stage('Build Frontend') {
-    agent {
-        docker {
-            image 'node:18'
-            args '-v $WORKSPACE:/app -w /app' // Usa a variável WORKSPACE padrão do Jenkins
+            agent {
+                docker {
+                    image 'node:18'
+                    // Corrigido: usando WORKSPACE em vez de pwd() e montando o volume corretamente
+                    args '-v $WORKSPACE:/app -w /app'
+                }
+            }
+            steps {
+                echo "--- Instalando dependências e fazendo o build do Next.js dentro de /app ---"
+                sh 'npm install --legacy-peer-deps'
+                sh 'npm run build'
+            }
         }
-    }
-    steps {
-        sh 'npm install'
-        sh 'npm run build'
-    }
-}
+
+        stage('Debug Paths') {
+            steps {
+                sh 'echo "WORKSPACE = $WORKSPACE"'
+                sh 'pwd'
+                sh 'ls -la'
+            }
+        }
 
         stage('Deploy Frontend') {
             steps {
                 echo "--- Reiniciando o serviço NGINX para carregar os novos arquivos ---"
-                // Reinicia o contêiner do Nginx para que ele sirva os novos arquivos
-                // que foram criados na pasta .next (que está montada como um volume no docker-compose.yml)
                 sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
             }
         }
     }
 
-    // O bloco post para enviar e-mail continua o mesmo
     post {
         always {
             script {
                 def jobStatus = currentBuild.currentResult
                 def subject = "${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
-                def body = "<h1>Status do Build: ${jobStatus}</h1><p>Job: ${env.JOB_NAME}<br>Build: #${env.BUILD_NUMBER}<br>Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a></p>"
+                def body = """
+                        <h1>Status do Build: ${jobStatus}</h1>
+                        <p>
+                            Job: ${env.JOB_NAME}<br>
+                            Build: #${env.BUILD_NUMBER}<br>
+                            Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>
+                        </p>
+                """
 
                 echo "--- Enviando notificação por e-mail ---"
                 emailext(
