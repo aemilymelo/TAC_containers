@@ -19,12 +19,11 @@ pipeline {
             agent {
                 docker {
                     image 'node:18'
-                    // Monta o diretório do projeto no contêiner e define como diretório de trabalho
-                    args '-v ${pwd()}/${env.PROJECT_DIR}:/app -w /app'
+                    // Correção: Use aspas duplas para expandir as variáveis
+                    args "-v ${pwd()}/${env.PROJECT_DIR}:/app -w /app"
                 }
             }
             steps {
-                // Não é mais necessário o passo 'dir', pois o -w já define o diretório
                 echo "--- Instalando dependências e fazendo o build do Next.js dentro de /app ---"
                 sh 'npm install --legacy-peer-deps'
                 sh 'npm run build'
@@ -34,7 +33,6 @@ pipeline {
         stage('Deploy Frontend') {
             steps {
                 echo "--- Reiniciando o serviço NGINX para carregar os novos arquivos ---"
-                // Garante que está no diretório correto para executar o docker-compose
                 sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
             }
         }
