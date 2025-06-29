@@ -43,17 +43,10 @@ pipeline {
     }
 
     post {
-    always {
-        emailext(
-            subject: "Build ${currentBuild.currentResult} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: """<p>Status: ${currentBuild.currentResult}</p>
-                   <p>Job: ${env.JOB_NAME}</p>
-                   <p>Número do Build: ${env.BUILD_NUMBER}</p>
-                   <p>Console: <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>""",
-            to: 'emilycaroline689@gmail.com',
-            mimeType: 'text/html',
-            attachLog: true
-        )
+        always {
+            mail to: 'emilycaroline689@gmail.com',
+                 subject: "Jenkins Job: ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
+                 body: "O Job ${env.JOB_NAME} (${SERVICE_NAME}) foi concluído com o status: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
         }
     }
 }
