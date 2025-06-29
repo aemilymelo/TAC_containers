@@ -1,26 +1,66 @@
-// ./cliente-pixel/Jenkinsfile - Versão Final com Caminho Absoluto
-
 pipeline {
     agent any
+
     environment {
-    SERVICE_NAME = 'nginx'
-}
+        GIT_URL             = 'https://github.com/aemilymelo/TAC_containers.git'
+        PROJECT_DIR         = '.'               // Repositório clonado na raiz
+        DOCKER_SERVICE_NAME = 'nginx'           // Nome do serviço Docker para reiniciar
+    }
 
     stages {
-        stage('Deploy do Serviço') {
+        stage('Checkout from Git') {
             steps {
-                script {
-                    echo "Parando e reconstruindo o serviço ${SERVICE_NAME}..."
-                    sh 'docker-compose -f /var/jenkins_home/workspace/job-cliente-pixel/docker-compose.yml up -d --build'
+                echo "--- Baixando o código do repositório ---"
+                git url: env.GIT_URL, branch: 'main'
+            }
+        }
+
+        stage('Build Frontend') {
+            agent {
+                docker {
+                    image 'node:18'                                      // Usa imagem com Node.js e npm
+                    args '-v /var/run/docker.sock:/var/run/docker.sock' // Caso precise rodar docker no container
+                }
+            }
+            steps {
+                dir('cliente-pixel') {  // Agora acessa corretamente a subpasta
+                    echo "--- Instalando dependências e fazendo o build do Next.js ---"
+                    sh 'npm install --legacy-peer-deps'
+                    sh 'npm run build'
                 }
             }
         }
+
+        stage('Deploy Frontend') {
+            steps {
+                echo "--- Reiniciando o serviço NGINX para carregar os novos arquivos ---"
+                sh "docker-compose restart ${env.DOCKER_SERVICE_NAME}"
+            }
+        }
     }
+
     post {
         always {
-            mail to: 'emilycaroline689@gmail.com',
-                 subject: "Jenkins Job: ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
-                 body: "O Job ${env.JOB_NAME} (${SERVICE_NAME}) foi concluído.\n\nStatus: ${currentBuild.currentResult}.\n\nPara mais detalhes, acesse: ${env.BUILD_URL}"
+            script {
+                def jobStatus = currentBuild.currentResult
+                def subject = "${jobStatus}: Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}"
+                def body = """
+                    <h1>Status do Build: ${jobStatus}</h1>
+                    <p>
+                        Job: ${env.JOB_NAME}<br>
+                        Build: #${env.BUILD_NUMBER}<br>
+                        Link: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>
+                    </p>
+                """
+
+                echo "--- Enviando notificação por e-mail ---"
+                emailext(
+                    to: 'emilycaroline689@gmail.com',
+                    subject: subject,
+                    body: body,
+                    mimeType: 'text/html'
+                )
+            }
         }
     }
 }
