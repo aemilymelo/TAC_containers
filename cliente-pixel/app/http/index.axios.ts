@@ -31,26 +31,11 @@ export function getAPIClient(ctx?: any) {
 
         const error = err.response ? err.response.data : err;
 
-        const isLoginPage = window.location.pathname == '/auth/login';
-
-        if (error && error.errorCode) {
-
-            if (ErrorCodes.EXPTK01 == error.errorCode.code && !isLoginPage) {
-                httpUnauthorized(true);
-                console.log("isTokenInvalid: {}")
-            }
-
-            if (ErrorCodes.ACDND01 == error.errorCode.code) {
-                console.log('isPermissaoNegada: {}');
-            }
-
+        const isLoginPage = window.location.pathname == '/login';
+        if(!error.valid){
+            console.log("isTokenInvalid: {}")
         }
 
-        if (err.error && err.status == 504) {
-
-            console.log("erro 504 - conexao com servidor")
-
-        }
 
         return Promise.reject(error); 
     });

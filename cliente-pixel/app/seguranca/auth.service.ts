@@ -39,8 +39,11 @@ export const useAuthService = (baseUrl: any) => {
 
     const getUserInfo = async (): Promise<UserInfo> => {
 
-        const response: AxiosResponse<UserInfo> = await httpClient.post<UserInfo>(baseUrl+"/user-info", {},
+        const response: AxiosResponse<UserInfo> = await httpClient.post<UserInfo>(baseUrl+"/validate", {},
             {
+                 headers: {
+                Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+            },
                 withCredentials: true
             });
 

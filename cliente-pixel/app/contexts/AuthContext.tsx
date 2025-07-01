@@ -43,7 +43,7 @@ export function AuthProvider({ children }: any) {
 
                 setUser(userInfo)
 
-                setHttpUnauthorized(false);
+                setHttpUnauthorized(userInfo.valid);
 
             } catch (error) {
                 //console.log("error: **** "+error)

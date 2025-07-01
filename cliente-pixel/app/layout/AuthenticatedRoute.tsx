@@ -15,8 +15,8 @@ export const AuthenticatedRoute: React.FC<AuthenticatedRouteProps> = (props: Aut
     function getIsPublicRoute(pathname: string) : boolean{
 
         const publicRoutes:string[] = [
-            '/auth/login',
-            '/auth/logout',
+            '/login',
+            '/logout',
             '/about'
         ];
 
@@ -38,12 +38,12 @@ export const AuthenticatedRoute: React.FC<AuthenticatedRouteProps> = (props: Aut
     if(!isPublicRoute){
 
         if(!user){
-            router.push('/auth/login')
+            router.push('/login')
             return null;
         }
     
         if(isHttpUnauthorized){
-            router.push('/auth/login')
+            router.push('/login')
             return null;
         }
 

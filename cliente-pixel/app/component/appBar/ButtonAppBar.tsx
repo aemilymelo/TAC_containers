@@ -9,12 +9,26 @@ import IconButton from '@mui/material/IconButton';
 import { Drawer } from '@mui/material';
 import MenuLateral from '@/app/menu/page';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 export default function ButtonAppBar() {
+    const router = useRouter(); 
+  const[isValidSession, setIsValidSession] = useState(false)
     const [open, setOpen] = useState(false);
-    const toggleDrawer = (newOpen: boolean) => () => {
+  const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
   };
-
+  React.useEffect(()=>{
+    setIsValidSession(localStorage.getItem('token') !="")
+  },[])
+  const handleClear =()=>{
+      localStorage.clear()
+            router.push('/login')
+  }
+  const isValidateOpenMenu = ()=>{
+    if (localStorage.getItem('token')) {
+     setOpen(true)
+    }
+  }
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -29,10 +43,10 @@ export default function ButtonAppBar() {
      
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          <Button onClick={toggleDrawer(true)} color="inherit">Menu</Button>
+          <Button onClick={isValidateOpenMenu} color="inherit">Menu</Button>
           </Typography>
-
-          <Button color="inherit">Login</Button>
+          {isValidSession ?       <Button onClick={handleClear} color="inherit">Logout</Button> :  <></>}
+   
         </Toolbar>
       </AppBar>
 

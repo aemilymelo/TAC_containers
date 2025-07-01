@@ -112,6 +112,11 @@ public class AuthController {
                     algorithm.verify(jwt);
 
                     Map<String, Object> response = new HashMap<>();
+                    String username = jwt.getClaim("cognito:email").asString();
+                    if (username == null || username.isEmpty()) {
+                        username = jwt.getClaim("email").asString();
+                    }
+                    response.put("username", username);
                     response.put("valid", true);
                     response.put("claims", jwt.getClaims()); // Você pode retornar as claims se precisar
                     return ResponseEntity.ok(response);

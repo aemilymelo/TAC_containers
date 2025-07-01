@@ -11,9 +11,7 @@ export default function PaginaPrincipal() {
     // Você pode usar sua Rota Autenticada aqui para proteger o conteúdo desta página
     <AuthenticatedRoute>
       <main>
-        <h1>Bem-vindo(a)!</h1>
-        <p>Este é o conteúdo principal da sua aplicação.</p>
-        <p>Se você está vendo isso, o build do Docker funcionou!</p>
+
       </main>
     </AuthenticatedRoute>
   );
