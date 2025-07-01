@@ -53,6 +53,11 @@ export default function HomePage() {
     <div className=" m-10 p-20 w-full">
       <Table
         list={list}
+        removeItem={(id)=> service.remove(id.id).then(()=>{
+      setMessage({ message: "Registro remvido ", status: "sucesso" });
+        }).catch(error=>{
+      setMessage({ message: "Ops, alguma falha no sistema", status: "error" });
+        })}
         openModal={handleOpen}
         columns={[
           { property: "id", label: "ID" },
@@ -60,6 +65,7 @@ export default function HomePage() {
           { property: "valor", label: "Temperatura" },
           { property: "longitude", label: "longitude" },
           { property: "latitude", label: "latitude" },
+              { type: "action", label: "Remover" },
         ]}
         title={"Dados Climáticos"}
       />

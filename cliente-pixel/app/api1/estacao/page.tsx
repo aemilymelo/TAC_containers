@@ -77,6 +77,11 @@ export default function Estacao() {
   return (
     <div className=" w-full">
       <TableView
+              removeItem={(id)=> service.remove(id.id).then(()=>{
+      setMessage({ message: "Registro remvido ", status: "sucesso" });
+        }).catch(error=>{
+      setMessage({ message: "Ops, alguma falha no sistema", status: "error" });
+        })}
         openModal={handleOpen}
         title="Estação meteorológica "
         list={list}
@@ -85,6 +90,7 @@ export default function Estacao() {
           { property: "nome", label: "Nome" },
           { property: "tipo", label: "Tipo" },
           { property: "tipo", label: "Tipo" },
+          { type: "action", label: "Remover" },
         ]}
       />
 

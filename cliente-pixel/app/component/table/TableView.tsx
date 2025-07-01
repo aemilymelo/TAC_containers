@@ -12,10 +12,11 @@ type TableProps = {
     title: string;
     list: TableRow[];
     columns: any[];
-    openModal?: (event?: any)=> void
+    openModal?: (event?: any)=> void;
+    removeItem: (id: any)=> void;
 };
 
-const TableView: React.FC<TableProps> = ({title, list, columns, openModal }) => {
+const TableView: React.FC<TableProps> = ({title, list, columns, openModal, removeItem }) => {
     return (
         <div className="shadow-md m-10  ">
             <div className='header-table'>
@@ -32,7 +33,7 @@ const TableView: React.FC<TableProps> = ({title, list, columns, openModal }) => 
                         {columns.map((column) => (
                             <TableCell className='text-left p-2 ' key={column.id}>{column.label}</TableCell>
                         ))}
-       
+
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -46,8 +47,11 @@ const TableView: React.FC<TableProps> = ({title, list, columns, openModal }) => 
                     {list.map((item) => (
                         <TableRow className='p-4' key={item.id}>
                             {columns.map((column) => (
-                                <TableCell  className='p-2' key={column.id}>{item[column.property]}</TableCell >
+                                
+                                column.type != 'action'  ? <TableCell  className='p-2' key={column.id}>{item[column.property]}</TableCell >
+                            :      <TableCell  key={column.id}> <Button onClick={()=> removeItem(item)} variant="contained" color="error">Delete</Button></TableCell>
                             ))}
+                       
                         </TableRow>
                     ))}
                 </TableBody>

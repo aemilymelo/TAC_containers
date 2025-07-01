@@ -75,6 +75,11 @@ export default function HomePage() {
   return (
     <div className=" w-full">
       <TableView
+              removeItem={(id)=> service.remove(id.id).then(()=>{
+      setMessage({ message: "Registro remvido ", status: "sucesso" });
+        }).catch(error=>{
+      setMessage({ message: "Ops, alguma falha no sistema", status: "error" });
+        })}
         openModal={handleOpen}
         title="Usuários"
         list={list}
@@ -82,6 +87,7 @@ export default function HomePage() {
           { property: "id", label: "ID" },
           { property: "nome", label: "Nome" },
           { property: "email", label: "Email" },
+          { type: "action", label: "Remover" },
         ]}
       />
 

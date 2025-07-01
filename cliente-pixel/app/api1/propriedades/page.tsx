@@ -77,6 +77,11 @@ export default function PropriedadesPage() {
   return (
     <div className=" w-full">
       <TableView
+              removeItem={(id)=> service.remove(id.id).then(()=>{
+      setMessage({ message: "Registro remvido ", status: "sucesso" });
+        }).catch(error=>{
+      setMessage({ message: "Ops, alguma falha no sistema", status: "error" });
+        })}
         openModal={handleOpen}
         title={title}
         list={list}
@@ -84,6 +89,7 @@ export default function PropriedadesPage() {
           { property: "id", label: "ID" },
           { property: "nome", label: "Nome" },
           { property: "localizacao", label: "Localização" },
+          { type: "action", label: "Remover" },
         ]}
       />
 
