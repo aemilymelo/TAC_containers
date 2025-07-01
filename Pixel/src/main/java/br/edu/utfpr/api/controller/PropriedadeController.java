@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/propriedades")
 @SecurityRequirement(name = "bearerAuth")
-
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class PropriedadeController extends ViewImpl<Propriedade, Long> {
 
     private final PropriedadeService service;

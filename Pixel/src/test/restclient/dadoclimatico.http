@@ -2,16 +2,15 @@ POST http://localhost:8080/dados-climaticos/dto
 Content-Type: application/json
 
 {
-    "tipo": "",
+    "tipo": "Temperatura",
     "valor": 25.5,
     "dataHora": "2025-04-28T12:00:00",
     "latitude": -23.5505,
     "longitude": -46.6333,
     "estacaoId": 1
 }
-
-//Consultar por Estação
-GET http://localhost:8080/dados-climaticos/por-estacao/1
+###
+GET http://localhost:8080/dados-climaticos
 
 //Consultar por Tipo
 GET http://localhost:8080/dados-climaticos/por-tipo?tipo=Temperatura

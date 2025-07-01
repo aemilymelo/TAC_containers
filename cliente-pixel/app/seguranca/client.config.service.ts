@@ -1,5 +1,4 @@
 
-import getConfig from 'next/config'
 import { parseCookies, setCookie,  } from 'nookies';
 export const useClientConfig = () => {
 

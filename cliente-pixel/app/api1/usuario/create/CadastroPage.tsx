@@ -1,14 +1,16 @@
 
 'use client';
-import { useService } from '@/app/src/service/user.service';
+import { useService } from '@/app/service/user.service';
 import React, { useState } from 'react';
 
 
 
 
 // Supondo que useService seja um hook customizado para lidar com requisições
-
-export default function CadastroPage() {
+interface Page {
+    onCloseModal: (status: boolean, message: string)=> void;
+}
+export default function CadastroPage({onCloseModal}: Page) {
     const [form, setForm] = useState({
         nome: '',
         email: '',
@@ -24,17 +26,19 @@ export default function CadastroPage() {
     const handleSubmit =  (e: React.FormEvent) => {
         e.preventDefault();
          service.insert(form).then((response) => {
+            onCloseModal(true, 'Usuário cadastrado com sucesso')
             console.log('Usuário cadastrado com sucesso:', response)
         }).catch((error) => {
+            onCloseModal(false, 'Erro ao cadastrar usuário')
             console.error('Erro ao cadastrar usuário:', error)
         });
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 w-full">
-            <form
+      
+            <form  
                 onSubmit={handleSubmit}
-                className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4"
+                className=" "
             >
                 <h2 className="text-2xl font-bold mb-4">Cadastro</h2>
                 <div>
@@ -79,6 +83,6 @@ export default function CadastroPage() {
                Cadastrar
                 </button>
             </form>
-        </div>
+      
     );
 }

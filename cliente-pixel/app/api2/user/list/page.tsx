@@ -1,7 +1,7 @@
 
 'use client';
-import Table from "@/app/component/table/Table";
-import { useServiceV2 } from "@/app/src/v2/service/user";
+import Table from "@/app/component/table/TableView";
+import { useServiceV2 } from "@/app/v2/service/user";
 import React, { useEffect, useState } from "react";
 
 const UserListPage: React.FC = () => {

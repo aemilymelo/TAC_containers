@@ -3,8 +3,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "./src/contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import MenuLateral from "./menu/page";
+import ButtonAppBar from "./component/appBar/ButtonAppBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,14 +28,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // A tag <html> deve ser o elemento raiz
+
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      {/* A tag <body> vem em seguida */}
-      <body style={{ display: 'flex' }}>
-        {/* O AuthProvider fica DENTRO do body, envolvendo os componentes */}
+
+      <body style={{display: 'flex', width: '100%', height: '100vh', position: 'relative', }}>
         <AuthProvider>
-          <MenuLateral />
-          {children} {/* {children} é onde a sua page.tsx será renderizada */}
+
+          <div style={{ width: '100%', overflow:'hidden'  }}>
+            <ButtonAppBar />
+
+            <div style={{position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'auto', height:'80%'}}>
+               {children}
+            </div>
+          <div style={{height: '10%', background: 'var(--gray)'}}>
+            Footer
+          </div>
+          </div>
         </AuthProvider>
       </body>
     </html>

@@ -3,7 +3,7 @@ import useCrud from "../crud/crud";
 import { getAPIClient } from "../http/index.axios";
 
 export const dadoClimaticoService =()=>{
-    const baseUrl = API_1+'/dados-climaticos/1';
+    const baseUrl = API_1+'/dados-climaticos';
     const httpClient = getAPIClient();
     const crud = useCrud<any, any>(httpClient, baseUrl);
 

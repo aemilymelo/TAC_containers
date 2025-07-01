@@ -3,7 +3,7 @@
 'use client';
 
 import React from 'react';
-import { AuthenticatedRoute } from './src/layout/AuthenticatedRoute';
+import { AuthenticatedRoute } from './layout/AuthenticatedRoute';
 
 // Uma página no Next.js App Router é apenas um componente React simples!
 export default function PaginaPrincipal() {

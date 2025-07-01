@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(value = "/tipodado", produces = "application/json")
 @SecurityRequirement(name = "bearerAuth")
-
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class TipoDadoController extends ViewImpl<TipoDado, Long> {
 
     public TipoDadoController(TipoDadoService service) {

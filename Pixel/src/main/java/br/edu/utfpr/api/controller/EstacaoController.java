@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(value = "/estacao", produces = "application/json")
 @SecurityRequirement(name = "bearerAuth")
-
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class EstacaoController extends ViewImpl<Estacao, Long> {
 
     private final PropriedadeService propriedadeService;

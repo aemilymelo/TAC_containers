@@ -4,6 +4,7 @@ import { AuthContext } from "../contexts/AuthContext";
 import { ErrorCodes } from "./error-codes";
 import { useClientConfig } from "../seguranca/client.config.service";
 
+
 export function getAPIClient(ctx?: any) {
 
     const { httpUnauthorized } = useContext(AuthContext)
@@ -35,14 +36,12 @@ export function getAPIClient(ctx?: any) {
         if (error && error.errorCode) {
 
             if (ErrorCodes.EXPTK01 == error.errorCode.code && !isLoginPage) {
-                //Router.push("/auth/logout")
                 httpUnauthorized(true);
                 console.log("isTokenInvalid: {}")
             }
 
             if (ErrorCodes.ACDND01 == error.errorCode.code) {
                 console.log('isPermissaoNegada: {}');
-                //Router.push("/permissao-negada")
             }
 
         }

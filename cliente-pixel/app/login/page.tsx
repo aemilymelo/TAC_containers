@@ -1,8 +1,8 @@
 'use client';
 import React, { useContext, useState } from 'react';
-import { AccountCredentials } from '../../src/models/AccountCredentials';
-import { AuthContext } from '../../src/contexts/AuthContext';
-import { UserInfo } from '../../src/models/UserInfo';
+import { AccountCredentials } from '../models/AccountCredentials';
+import { AuthContext } from '../contexts/AuthContext';
+import { UserInfo } from '../models/UserInfo';
 import { useRouter } from 'next/navigation';
 
 const Login: React.FC = () => {

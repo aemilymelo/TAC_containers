@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/dados-climaticos")
 @SecurityRequirement(name = "bearerAuth")
-
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class DadoClimaticoController extends ViewImpl<DadoClimatico, Long> {
 
     private final EstacaoService estacaoService;

@@ -1,6 +1,6 @@
 
 'use client';
-import { useServiceV2 } from '@/app/src/v2/service/user';
+import { useServiceV2 } from '@/app/v2/service/user';
 import React, { useState } from 'react';
 
 
