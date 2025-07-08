@@ -1,0 +1,35 @@
+POST http://localhost:4000/user
+Content-Type: application/json
+
+{
+    "query": "query { users { id nome email } }"
+}
+
+
+###
+POST http://localhost:4000/cultura
+Content-Type: application/json
+
+{
+    "query": "
+            {
+            cultura {
+                id
+                nome
+                variedade
+                dataPlantio
+                dataColheitaPrevista
+                dataColheitaReal
+                area
+                status
+                latitude
+                longitude
+                propriedade {
+                id
+                nome
+                }
+                observacoes
+            }
+            }
+        "
+}
