@@ -1,5 +1,6 @@
 package br.edu.utfpr.api.controller;
 
+import br.edu.utfpr.api.config.RabbitConfig;
 import br.edu.utfpr.api.dto.DadoClimaticoDTO;
 import br.edu.utfpr.api.model.DadoClimatico;
 import br.edu.utfpr.api.model.Estacao;
@@ -15,6 +16,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +34,8 @@ public class DadoClimaticoController extends ViewImpl<DadoClimatico, Long> {
 
     private final EstacaoService estacaoService;
     private final DadoClimaticoService dadoClimaticoService;
-
+   @Autowired
+    private AmqpTemplate amqpTemplate;
     public DadoClimaticoController(DadoClimaticoService service, EstacaoService estacaoService) {
         super(service);
         this.estacaoService = estacaoService;
@@ -55,10 +60,15 @@ public class DadoClimaticoController extends ViewImpl<DadoClimatico, Long> {
         Estacao estacao = response.getBody();
         DadoClimatico dadoClimatico = dto.toEntity();
         dadoClimatico.setEstacao(estacao);
-
-        return service.save(dadoClimatico);
+         ResponseEntity<DadoClimatico> responseBody = service.save(dadoClimatico);
+        if(responseBody.getBody().getValor() < 3){
+            sendMessage("Alerta de geada,");
+        }
+        return responseBody;
     }
-
+    public void sendMessage(String message) {
+        amqpTemplate.convertAndSend(RabbitConfig.QUEUE_NAME, message);
+    }
     // ✅ Buscar por estação
     @Operation(summary = "Buscar dados climáticos por estação", description = "Obtém todos os dados climáticos de uma estação específica.")
     @ApiResponses(value = {

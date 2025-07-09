@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
     "tipo": "Temperatura",
-    "valor": 25.5,
+    "valor": 2,
     "dataHora": "2025-04-28T12:00:00",
     "latitude": -23.5505,
     "longitude": -46.6333,
